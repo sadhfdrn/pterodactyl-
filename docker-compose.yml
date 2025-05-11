@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  panel:
+    image: ghcr.io/pterodactyl/panel:latest
+    container_name: pterodactyl_panel
+    restart: unless-stopped
+    env_file:
+      - ./panel/.env
+    volumes:
+      - ./panel/var:/app/var
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ptero_net
+
+  mysql:
+    image: mysql:5.7
+    container_name: ptero_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: panel
+      MYSQL_USER: ptero
+      MYSQL_PASSWORD: strongpassword
+      MYSQL_ROOT_PASSWORD: rootpass
+    volumes:
+      - ./panel/mysql:/var/lib/mysql
+    networks:
+      - ptero_net
+
+  redis:
+    image: redis:alpine
+    container_name: ptero_redis
+    restart: unless-stopped
+    networks:
+      - ptero_net
+
+  nginx:
+    image: nginx:latest
+    container_name: ptero_nginx
+    restart: unless-stopped
+    volumes:
+      - ./panel/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - panel
+    networks:
+      - ptero_net
+
+networks:
+  ptero_net:
+    driver: bridge

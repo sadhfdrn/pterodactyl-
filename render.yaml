@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: pterodactyl-panel
+    env: docker
+    dockerfilePath: ./Dockerfile
+    buildCommand: 'docker build -t pterodactyl-panel .' # Custom build command for Render
+    startCommand: 'docker run -p 80:80 -p 443:443 pterodactyl-panel'
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: mysql://ptero:strongpassword@mysql:3306/panel
+      - key: REDIS_URL
+        value: redis://redis:6379
+      - key: APP_URL
+        value: https://your-panel.onrender.com
+      - key: APP_TIMEZONE
+        value: UTC
+
+# Create Render database service
+  - type: postgres
+    name: pterodactyl-database
+    plan: free
+    databaseName: panel
+    user: ptero
+    password: strongpassword
+
+# Create Render Redis service
+  - type: redis
+    name: pterodactyl-redis
+    plan: free
+    redisMemory: 256MB
